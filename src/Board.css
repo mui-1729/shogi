@@ -1,0 +1,27 @@
+.board {
+    display: inline-block;
+    border: 2px solid #333;
+  }
+  
+  .row {
+    display: flex;
+
+  }
+  
+  .cell {
+    width: 50px;
+    height: 50px;
+    border: 1px solid #999;
+    box-sizing: border-box;
+    background-color: #f8f4e6;
+  }
+
+  .piece {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 20px;
+    font-weight: bold;
+    color:black
+  }
