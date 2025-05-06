@@ -1,13 +1,14 @@
 import Board from './Board';
-import './App.css'
+import './App.css';
+import React from 'react';
 
 function App() {
   return (
-    <div>
+    <div className='App'>
       <h1>
-        
-        <Board />
+        将棋
       </h1>
+        <Board />
     </div>
   );
 }
