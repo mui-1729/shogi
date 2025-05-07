@@ -12,11 +12,11 @@ const initialBoard: Piece[][] = [
   ],
   [
     null, { type: '飛', player: 1 }, null, null, null, null, null, { type: '角', player: 1 }, null],
-    Array.from({ length: 9}, () => ({type: '歩', player: 1})),
+    Array.from({ length: 9 }, () => ({ type: '歩', player: 1 })),
     Array(9).fill(null), 
     Array(9).fill(null), 
     Array(9).fill(null), 
-    Array.from({ length: 9}, () => ({type: '歩', player: 2})),
+    Array.from({ length: 9 }, () => ({ type: '歩', player: 2 })),
   
   [
     null, { type: '角', player: 2 }, null, null, null, null, null, { type: '飛', player: 2 }, null
@@ -64,6 +64,24 @@ const canMove: Record<string, Delta[]> = {
     { dr: 5, dc: 0 }, { dr: 6, dc: 0 },
     { dr: 7, dc: 0 }, { dr: 8, dc: 0 }
   ],
+  角:   [
+    { dr: 1, dc: 1 }, { dr: 2, dc: 2 },
+    { dr: 3, dc: 3 }, { dr: 4, dc: 4 },
+    { dr: 5, dc: 5 }, { dr: 6, dc: 6 },
+    { dr: 7, dc: 7 }, { dr: 8, dc: 8 },
+    { dr: -1, dc: -1 }, { dr: -2, dc: -2 },
+    { dr: -3, dc: -3 }, { dr: -4, dc: -4 },
+    { dr: -5, dc: -5 }, { dr: -6, dc: -6 },
+    { dr: -7, dc: -7 }, { dr: -8, dc: -8 },
+    { dr: -1, dc: 1 }, { dr: -2, dc: 2 },
+    { dr: -3, dc: 3 }, { dr: -4, dc: 4 },
+    { dr: -5, dc: 5 }, { dr: -6, dc: 6 },
+    { dr: -7, dc: 7 }, { dr: -8, dc: 8 },
+    { dr: 1, dc: -1 }, { dr: 2, dc: -2 },
+    { dr: 3, dc: -3 }, { dr: 4, dc: -4 },
+    { dr: 5, dc: -5 }, { dr: 6, dc: -6 },
+    { dr: 7, dc: -7 }, { dr: 8, dc: -8 }
+  ],
 };
 
 function validMove(
@@ -76,19 +94,40 @@ function validMove(
   
     const dir = piece.player === 1 ? 1 : -1;
 
+    const dr = to.row - from.row;
+    const dc = to.col - from.col;
+
     if (canMove[piece.type]) {
-      const dr = to.row - from.row;
-      const dc = to.col - from.col;
   
-      return canMove[piece.type]!.some(delta =>
+      const canDirection = canMove[piece.type].some(delta =>
         delta.dr * dir === dr && delta.dc === dc
       );
+    if (!canDirection) return false;
+
+    if (piece.type === '香') {
+        for (let r = from.row + dir; r !== to.row; r += dir ) {
+            if (board[r][from.col] !== null) {
+                return false;
+            }
+        }
     }
-
+    if (piece.type === '角') {
+        const rowStep = to.row - from.row > 0 ? 1 : -1
+        const colStep = to.col - from.col > 0 ? 1 : -1
+        let r = from.row + rowStep;
+        let c = from.col + colStep;
+        while ( r !== to.row && c !== to.col ){
+            if (board[r][c] !== null ) return false;
+            r += rowStep;
+            c += colStep;
+        }
+    }
+    return true
+}
     return false;
-  }
+}
 
-    const click = (row: number, col: number) => {
+const click = (row: number, col: number) => {
         if (!select){
             if (board[row][col] && board[row][col]?.player === nowplayer) {
                 setselect({ row , col });
