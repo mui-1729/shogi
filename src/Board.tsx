@@ -82,6 +82,24 @@ const canMove: Record<string, Delta[]> = {
     { dr: 5, dc: -5 }, { dr: 6, dc: -6 },
     { dr: 7, dc: -7 }, { dr: 8, dc: -8 }
   ],
+  飛:   [
+    { dr: 1, dc: 0 }, { dr: 2, dc: 0 },
+    { dr: 3, dc: 0 }, { dr: 4, dc: 0 },
+    { dr: 5, dc: 0 }, { dr: 6, dc: 0 },
+    { dr: 7, dc: 0 }, { dr: 8, dc: 0 },
+    { dr: -1, dc: 0 }, { dr: -2, dc: 0 },
+    { dr: -3, dc: 0 }, { dr: -4, dc: 0 },
+    { dr: -5, dc: 0 }, { dr: -6, dc: 0 },
+    { dr: -7, dc: 0 }, { dr: -8, dc: 0 },
+    { dr: 0, dc: 1 },{ dr: 0, dc: 2 },
+    { dr: 0, dc: 3 },{ dr: 0, dc: 4 },
+    { dr: 0, dc: 5 },{ dr: 0, dc: 6 },
+    { dr: 0, dc: 7 },{ dr: 0, dc: 8 },
+    { dr: 0, dc: -1 },{ dr: 0, dc: -2 },
+    { dr: 0, dc: -3 },{ dr: 0, dc: -4 },
+    { dr: 0, dc: -5 },{ dr: 0, dc: -6 },
+    { dr: 0, dc: -7 },{ dr: 0, dc: -8 }
+  ],
 };
 
 function validMove(
@@ -96,6 +114,8 @@ function validMove(
 
     const dr = to.row - from.row;
     const dc = to.col - from.col;
+    const rowStep = to.row - from.row > 0 ? 1 : -1
+    const colStep = to.col - from.col > 0 ? 1 : -1
 
     if (canMove[piece.type]) {
   
@@ -112,8 +132,6 @@ function validMove(
         }
     }
     if (piece.type === '角') {
-        const rowStep = to.row - from.row > 0 ? 1 : -1
-        const colStep = to.col - from.col > 0 ? 1 : -1
         let r = from.row + rowStep;
         let c = from.col + colStep;
         while ( r !== to.row && c !== to.col ){
@@ -122,8 +140,21 @@ function validMove(
             c += colStep;
         }
     }
+    if (piece.type === '飛') {
+        if (from.row === to.row) {
+            for (let c = from.col + colStep; c !== to.col; c += colStep) {
+                if (board[from.row][c] !== null) return false;
+            } 
+        } else if (from.col) {
+            for (let r = from.row + rowStep; r !== to.row; r += rowStep) {
+                if (board[r][from.col] !== null) return false;
+        }
+        } else {
+            return false;
+        }
+    }
     return true
-}
+}     
     return false;
 }
 
@@ -146,6 +177,7 @@ const click = (row: number, col: number) => {
             }
         }
     };
+
   return (
     <div className="board">
       {board.flatMap((row, rowIndex) => 
