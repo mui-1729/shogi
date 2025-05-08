@@ -28,79 +28,36 @@ const initialBoard: Piece[][] = [
   ]
 ];
 
-const Board: React.FC = () => { 
-    const [board, setboard] = useState <Piece[][]> (initialBoard);
-    const [select, setselect] = useState <Position> (null);
-    const [nowplayer, setnowplayer] = useState<number>(1);
-
-    type Delta = { dr: number; dc: number };
-
-const canMove: Record<string, Delta[]> = {
-  歩:   [{ dr: 1, dc: 0 }],
-  桂:   [{ dr: 2, dc: -1 }, { dr: 2, dc: 1 }],
-  銀:   [
-    { dr: 1, dc: 0 }, { dr: 1, dc: -1 }, { dr: 1, dc: 1 },
-    { dr: -1, dc: -1 }, { dr: -1, dc: 1 }
-  ],
-  金:   [
-    { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: 0, dc: 1 },
-    { dr: -1, dc: 0 }, { dr: 1, dc: -1 }, { dr: 1, dc: 1 }
-  ],
-  王:   [
-    { dr: 1, dc: 0 }, { dr: -1, dc: 0 },
-    { dr: 0, dc: 1 }, { dr: 0, dc: -1 },
-    { dr: 1, dc: 1 }, { dr: 1, dc: -1 },
-    { dr: -1, dc: 1 }, { dr: -1, dc: -1 }
-  ],
-  玉:   [
-    { dr: 1, dc: 0 }, { dr: -1, dc: 0 },
-    { dr: 0, dc: 1 }, { dr: 0, dc: -1 },
-    { dr: 1, dc: 1 }, { dr: 1, dc: -1 },
-    { dr: -1, dc: 1 }, { dr: -1, dc: -1 }
-  ],
-  香:   [
-    { dr: 1, dc: 0 }, { dr: 2, dc: 0 },
-    { dr: 3, dc: 0 }, { dr: 4, dc: 0 },
-    { dr: 5, dc: 0 }, { dr: 6, dc: 0 },
-    { dr: 7, dc: 0 }, { dr: 8, dc: 0 }
-  ],
-  角:   [
-    { dr: 1, dc: 1 }, { dr: 2, dc: 2 },
-    { dr: 3, dc: 3 }, { dr: 4, dc: 4 },
-    { dr: 5, dc: 5 }, { dr: 6, dc: 6 },
-    { dr: 7, dc: 7 }, { dr: 8, dc: 8 },
-    { dr: -1, dc: -1 }, { dr: -2, dc: -2 },
-    { dr: -3, dc: -3 }, { dr: -4, dc: -4 },
-    { dr: -5, dc: -5 }, { dr: -6, dc: -6 },
-    { dr: -7, dc: -7 }, { dr: -8, dc: -8 },
-    { dr: -1, dc: 1 }, { dr: -2, dc: 2 },
-    { dr: -3, dc: 3 }, { dr: -4, dc: 4 },
-    { dr: -5, dc: 5 }, { dr: -6, dc: 6 },
-    { dr: -7, dc: 7 }, { dr: -8, dc: 8 },
-    { dr: 1, dc: -1 }, { dr: 2, dc: -2 },
-    { dr: 3, dc: -3 }, { dr: 4, dc: -4 },
-    { dr: 5, dc: -5 }, { dr: 6, dc: -6 },
-    { dr: 7, dc: -7 }, { dr: 8, dc: -8 }
-  ],
-  飛:   [
-    { dr: 1, dc: 0 }, { dr: 2, dc: 0 },
-    { dr: 3, dc: 0 }, { dr: 4, dc: 0 },
-    { dr: 5, dc: 0 }, { dr: 6, dc: 0 },
-    { dr: 7, dc: 0 }, { dr: 8, dc: 0 },
-    { dr: -1, dc: 0 }, { dr: -2, dc: 0 },
-    { dr: -3, dc: 0 }, { dr: -4, dc: 0 },
-    { dr: -5, dc: 0 }, { dr: -6, dc: 0 },
-    { dr: -7, dc: 0 }, { dr: -8, dc: 0 },
-    { dr: 0, dc: 1 },{ dr: 0, dc: 2 },
-    { dr: 0, dc: 3 },{ dr: 0, dc: 4 },
-    { dr: 0, dc: 5 },{ dr: 0, dc: 6 },
-    { dr: 0, dc: 7 },{ dr: 0, dc: 8 },
-    { dr: 0, dc: -1 },{ dr: 0, dc: -2 },
-    { dr: 0, dc: -3 },{ dr: 0, dc: -4 },
-    { dr: 0, dc: -5 },{ dr: 0, dc: -6 },
-    { dr: 0, dc: -7 },{ dr: 0, dc: -8 }
-  ],
+const canMove: Record<string, (player: number) => number[][]> = {
+    歩: (player: number) => [[player === 1 ? 1 : -1, 0]],
+  桂: (player: number) => [[player === 1 ? 2 : -2, -1], [player === 1 ? 2 : -2, 1]],
+  銀: (player: number) => [[1, 0], [1, -1], [1, 1], [-1, -1], [-1, 1]].map(([dr, dc]) => player === 1 ? [dr, dc] : [-dr, dc]),
+  金: (player: number) => [[1, 0], [0, -1], [0, 1], [-1, 0], [1, -1], [1, 1]].map(([dr, dc]) => player === 1 ? [dr, dc] : [-dr, dc]),
+  王: () => [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]],
+  玉: () => [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]],
+  香: (player: number) => Array.from({ length: 8 }, (_, i) => [player === 1 ? i + 1 : -i - 1, 0]),
+  角: () => {
+    const moves = [];
+    for (let i = 1; i < 9; i++) {
+      moves.push([i, i], [-i, -i], [i, -i], [-i, i]);
+    }
+    return moves;
+  },
+  飛: () => {
+    const moves = [];
+    for (let i = 1; i < 9; i++) {
+      moves.push([i, 0], [-i, 0], [0, i], [0, -i]);
+    }
+    return moves;
+  }
 };
+
+const Board: React.FC = () => { 
+    const [board, setBoard] = useState <Piece[][]> (initialBoard);
+    const [select, setSelect] = useState <Position> (null);
+    const [turn, setTurn] = useState<number>(1);
+    const [capture, setCapture] = useState<{ [key: number] : Piece[] }>({ 1: [], 2: [] });
+
 
 function validMove(
     from: Position,
@@ -108,88 +65,87 @@ function validMove(
     piece: Piece
   ): boolean {
     if (!from || !to || !piece) return false;
-    if (piece.player !== nowplayer) return false;
-  
-    const dir = piece.player === 1 ? 1 : -1;
+    if (piece.player !== turn) return false;
 
     const dr = to.row - from.row;
     const dc = to.col - from.col;
-    const rowStep = to.row - from.row > 0 ? 1 : -1
-    const colStep = to.col - from.col > 0 ? 1 : -1
 
-    if (canMove[piece.type]) {
-  
-      const canDirection = canMove[piece.type].some(delta =>
-        delta.dr * dir === dr && delta.dc === dc
-      );
-    if (!canDirection) return false;
-
-    if (piece.type === '香') {
-        for (let r = from.row + dir; r !== to.row; r += dir ) {
-            if (board[r][from.col] !== null) {
+    const directions = canMove[piece.type](piece.player);
+    for (const [ r, c ] of directions) {
+        const stepR = Math.sign(dr), stepC = Math.sign(dc);
+        if (r === dr && c === dc ){
+            if (board[to.row][to.col] && board[to.row][to.col]?.player === piece.player) {
                 return false;
             }
+            
+            if  (piece.type === '角' || piece.type === '飛' || piece.type === '香') {
+                let r = from.row + stepR, c = from.col + stepC;
+                while ( r !== to.row || c !== to.col) {
+                    if (board[r][c] !== null) return false;
+                    r += stepR;
+                    c += stepC
+                }
+            }
+            if (piece.type === '香') {
+                const step = piece.player === 1 ? 1 : -1;
+                for (let r = from.row + step; r !== to.row; r += step) {
+                    if (board[r][from.col] !== null) return false;
+                }
         }
+        return true;
     }
-    if (piece.type === '角') {
-        let r = from.row + rowStep;
-        let c = from.col + colStep;
-        while ( r !== to.row && c !== to.col ){
-            if (board[r][c] !== null ) return false;
-            r += rowStep;
-            c += colStep;
-        }
-    }
-    if (piece.type === '飛') {
-        if (from.row === to.row) {
-            for (let c = from.col + colStep; c !== to.col; c += colStep) {
-                if (board[from.row][c] !== null) return false;
-            } 
-        } else if (from.col) {
-            for (let r = from.row + rowStep; r !== to.row; r += rowStep) {
-                if (board[r][from.col] !== null) return false;
-        }
-        } else {
-            return false;
-        }
-    }
-    return true
-}     
+}
     return false;
 }
 
-const click = (row: number, col: number) => {
-        if (!select){
-            if (board[row][col] && board[row][col]?.player === nowplayer) {
-                setselect({ row , col });
-            }
-        } else {
+const handleClick = (row: number, col: number) => {
+    const clickedPiece = board[row][col];
 
-            if ( validMove(select, { row, col }, board[select.row][select.col])){
-                const newBoard = board.map((row) => row.slice());
-                newBoard[{ row, col }.row][{ row, col }.col] = board[select.row][select.col];
-                newBoard[select.row][select.col] = null;
-                setboard(newBoard);
-                setselect(null);
-                setnowplayer(nowplayer === 1 ? 2 : 1);
-            } else {
-                setselect(null);
-            }
+    if (!select) {
+      if (clickedPiece && clickedPiece.player === turn) {
+        setSelect({ row, col });
+      }
+    } else {
+      const piece = board[select.row][select.col];
+      if (validMove(select, { row, col }, piece)) {
+        const newBoard = board.map(row => row.slice());
+        if (clickedPiece && clickedPiece.player !== turn) {
+          setCapture(prev => ({
+            ...prev,
+            [turn]: [...prev[turn], { type: clickedPiece.type, player: turn }]
+          }));
         }
-    };
+        newBoard[row][col] = piece;
+        newBoard[select.row][select.col] = null;
+        setBoard(newBoard);
+        setSelect(null);
+        setTurn(turn === 1 ? 2 : 1);
+      } else {
+        setSelect(null);
+      }
+    }
+  };
 
   return (
     <div className="board">
-      {board.flatMap((row, rowIndex) => 
-          row.map((cell, colIndex) => {
-            const isselect = select?.row === rowIndex && select?.col === colIndex;
-            return(
-            <div className={`cell ${isselect ? 'select' : ''}`}  key={ `${rowIndex}-${colIndex}`} onClick={() => click(rowIndex, colIndex)}>
+      {board.map((rowArr, rowIdx) =>
+        rowArr.map((cell, colIdx) => {
+          const isSelected = select?.row === rowIdx && select?.col === colIdx;
+          return (
+            <div
+              className={`cell ${isSelected ? 'selected' : ''}`}
+              key={`${rowIdx}-${colIdx}`}
+              onClick={() => handleClick(rowIdx, colIdx)}
+            >
               {cell && <span className="piece">{cell.type}</span>}
             </div>
-            );
+          );
         })
-        )}
+      )}
+      <div className="captured">
+        <div>先手の持ち駒: {capture[1].map((p, i) => <span key={i}>{p?.type}</span>)}</div>
+        <div>後手の持ち駒: {capture[2].map((p, i) => <span key={i}>{p?.type}</span>)}</div>
+      </div>
     </div>
   );
 };
