@@ -57,6 +57,7 @@ const Board: React.FC = () => {
     const [select, setSelect] = useState <Position> (null);
     const [turn, setTurn] = useState<number>(1);
     const [capture, setCapture] = useState<{ [key: number] : Piece[] }>({ 1: [], 2: [] });
+    const [place, setPlace] = useState<Piece | null>(null);
 
 
 function validMove(
@@ -77,7 +78,7 @@ function validMove(
             if (board[to.row][to.col] && board[to.row][to.col]?.player === piece.player) {
                 return false;
             }
-            
+
             if  (piece.type === '角' || piece.type === '飛' || piece.type === '香') {
                 let r = from.row + stepR, c = from.col + stepC;
                 while ( r !== to.row || c !== to.col) {
@@ -101,31 +102,42 @@ function validMove(
 const handleClick = (row: number, col: number) => {
     const clickedPiece = board[row][col];
 
-    if (!select) {
-      if (clickedPiece && clickedPiece.player === turn) {
-        setSelect({ row, col });
+    if (placingPiece) {
+      // 持ち駒を盤面に置く処理
+      if (!clickedPiece) {
+        const newBoard = board.map(row => row.slice());
+        newBoard[row][col] = placingPiece; // 盤面に駒を配置
+        setBoard(newBoard);
+
+        // 持ち駒から削除
+        setCapture(prev => ({
+          ...prev,
+          [turn]: prev[turn].filter(piece => piece !== placingPiece)
+        }));
+
+        setPlacingPiece(null); // 配置モード解除
+        setTurn(turn === 1 ? 2 : 1);
       }
     } else {
-      const piece = board[select.row][select.col];
-      if (validMove(select, { row, col }, piece)) {
-        const newBoard = board.map(row => row.slice());
-        if (clickedPiece && clickedPiece.player !== turn) {
-          setCapture(prev => ({
-            ...prev,
-            [turn]: [...prev[turn], { type: clickedPiece.type, player: turn }]
-          }));
+      if (clickedPiece && clickedPiece.player === turn) {
+        setSelect({ row, col });
+      } else if (select) {
+        const piece = board[select.row][select.col];
+        if (validMove(select, { row, col }, piece)) {
+          const newBoard = board.map(row => row.slice());
+          newBoard[row][col] = piece;
+          newBoard[select.row][select.col] = null;
+          setBoard(newBoard);
+          setSelect(null);
+          setTurn(turn === 1 ? 2 : 1);
         }
-        newBoard[row][col] = piece;
-        newBoard[select.row][select.col] = null;
-        setBoard(newBoard);
-        setSelect(null);
-        setTurn(turn === 1 ? 2 : 1);
-      } else {
-        setSelect(null);
       }
     }
   };
 
+  const handlePlacePiece = (piece: Piece) => {
+    setPlacingPiece(piece); // 持ち駒を選択して盤面に置くモードに入る
+  };
   return (
     <div className="board">
       {board.map((rowArr, rowIdx) =>
